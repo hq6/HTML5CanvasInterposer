@@ -1,14 +1,34 @@
-// Interpose on calls to draw on a canvas, log and forward them.
-// Return an object that allows querying for the logs.
-function CanvasInterposer(canvas) {
-    this.oldGetContext = canvas.getContext.bind(canvas);
-    this.canvas = canvas;
-    this.ctx = null; // Will be initialized when getContext is called on the canvas so we know the arguments.
+// Interpose on calls to draw on a canvas, replacing the context object for the
+// canvas.
+// Return an object on which a user can override any method to interpose on the
+// corresponding canvas method.
 
-    canvas.getContext = function() {
-        this.ctx = this.oldGetContext.apply(this.canvas, arguments);
-        return this;
-    }.bind(this);
+// This constructor takes ether a canvas object or a context object.
+// A reference to a canvas is sufficient if the host JS calls getContext() on
+// every frame.
+// However, if the context object is being cached by the host's JS, we must pass the
+// cached context to this constructor and replace the cached context with a
+// reference to this object.
+function CanvasInterposer(canvasOrContext) {
+    if (canvasOrContext.hasOwnProperty("getContext")) {
+        console.log("A canvas was passed.");
+        var canvas = canvasOrContext;
+        this.oldGetContext = canvas.getContext.bind(canvas);
+        this.canvas = canvas;
+        this.ctx = null; // Will be initialized when getContext is called on the canvas so we know the arguments.
+        canvas.getContext = function() {
+            var args = Array.prototype.slice.call(arguments, 0);
+            console.log("getContext " + args.join(","));
+            this.ctx = this.oldGetContext.apply(this.canvas, arguments);
+            return this;
+        }.bind(this);
+    } else {
+        // Assume context is passed in
+        console.log("A context was passed.");
+        this.ctx = canvasOrContext;
+        this.canvas = this.ctx.canvas;
+    }
+
 
     this.clearRect = function() {
         return this.ctx.clearRect.apply(this.ctx, arguments);
@@ -227,4 +247,3 @@ function CanvasInterposer(canvas) {
         }
     });
 }
-interposer = new CanvasInterposer(document.getElementById("canvas"));
