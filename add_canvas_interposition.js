@@ -9,8 +9,9 @@
 // However, if the context object is being cached by the host's JS, we must pass the
 // cached context to this constructor and replace the cached context with a
 // reference to this object.
-function CanvasInterposer(canvasOrContext) {
+function CanvasInterposer(canvasOrContext, logCalls = false) {
     console.log(canvasOrContext);
+    this.logCalls = logCalls;
     this.generateFunctionsAndProperties = function() {
         if (this.__alreadyGenerated) {
             return;
@@ -18,21 +19,29 @@ function CanvasInterposer(canvasOrContext) {
         this.__alreadyGenerated = true;
 
         for (var property in this.ctx) {
-            console.log(property);
+            // Uncomment for internal debugging.
+            // console.log(property);
             if (typeof this.ctx[property] === 'function') {
                 this[property] = function(p) {return function() {
-                    console.log("Invoked " + p + "(" + Array.prototype.slice.call(arguments, 0).join(",") + ")");
+                    if (this.logCalls) {
+                        console.log("Invoked " + p + "(" +
+                            Array.prototype.slice.call(arguments, 0).join(",") + ")");
+                    }
                     return this.ctx[p].apply(this.ctx, arguments);
                 }; }(property);
             } else {
                 // Make everything else a property
                 Object.defineProperty(this, property, {
                     "get" : function(p) { return function() {
-                        console.log("Got property " + p);
+                        if (this.logCalls) {
+                            console.log("Got property " + p);
+                        }
                         return this.ctx[p];
                     };}(property),
                     "set" : function(p) {return function(value) {
-                        console.log("Set property " + p + " to value " + value);
+                        if (this.logCalls) {
+                            console.log("Set property " + p + " to value " + value);
+                        }
                         this.ctx[p] = value;
                     };}(property)
                 });
@@ -48,7 +57,9 @@ function CanvasInterposer(canvasOrContext) {
         this.ctx = null;
         canvas.getContext = function() {
             var args = Array.prototype.slice.call(arguments, 0);
-            console.log("getContext " + args.join(","));
+            if (this.logCalls) {
+                console.log("getContext " + args.join(","));
+            }
             this.ctx = this.oldGetContext.apply(this.canvas, arguments);
             this.generateFunctionsAndProperties();
             return this;

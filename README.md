@@ -5,6 +5,9 @@ getContext.
 
 It should be easy to modify, log, or deny calls based on the interposition.
 
+The hope is that this will be useful both for unit testing of canvas-based
+applications and also for understanding existing canvas-based applications.
+
 ## Usage
 
 ```
