@@ -21,18 +21,18 @@ function CanvasInterposer(canvasOrContext) {
             console.log(property);
             if (typeof this.ctx[property] === 'function') {
                 this[property] = function(p) {return function() {
-                    console.log("Attempted to invoke function " + p);
+                    console.log("Invoked " + p + "(" + Array.prototype.slice.call(arguments, 0).join(",") + ")");
                     return this.ctx[p].apply(this.ctx, arguments);
                 }; }(property);
-                console.log("Property is  a function: " + property)
             } else {
-                console.log("Property is not a function: " + property)
                 // Make everything else a property
                 Object.defineProperty(this, property, {
                     "get" : function(p) { return function() {
+                        console.log("Got property " + p);
                         return this.ctx[p];
                     };}(property),
                     "set" : function(p) {return function(value) {
+                        console.log("Set property " + p + " to value " + value);
                         this.ctx[p] = value;
                     };}(property)
                 });
