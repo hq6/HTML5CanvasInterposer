@@ -3,8 +3,7 @@
 The goal of this code is to allow interposition on the calls to HTML5Canvas
 getContext.
 
-It should be easy to modify, or deny calls based on the interposition, rather
-than merely log that they are happening.
+It should be easy to modify, log, or deny calls based on the interposition.
 
 ## Usage
 
