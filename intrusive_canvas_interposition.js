@@ -39,8 +39,10 @@ function InterposeContextCalls(canvas, logCalls = false) {
             // We also interpose on properties because this way we can disable
             // assignments or control what comes out of reads.
 
-            // Save the original property
-            ctx["__" + property] = ctx[property];
+            // Save the original functions associated with the original property
+            var protop = Object.getOwnPropertyDescriptor(ctx.__proto__, property);
+            Object.defineProperty(ctx, "__" + property, protop);
+
             Object.defineProperty(ctx, property, {
                 "get" : function(p) { return function() {
                     if (logCalls) {
