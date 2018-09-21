@@ -41,6 +41,9 @@ function InterposeContextCalls(canvas, logCalls = false) {
 
             // Save the original functions associated with the original property
             var protop = Object.getOwnPropertyDescriptor(ctx.__proto__, property);
+            if (protop === undefined) {
+                protop = Object.getOwnPropertyDescriptor(ctx, property);
+            }
             Object.defineProperty(ctx, "__" + property, protop);
 
             Object.defineProperty(ctx, property, {
@@ -62,5 +65,6 @@ function InterposeContextCalls(canvas, logCalls = false) {
 
     return ctx;
 }
+interposer = InterposeContextCalls(document.getElementsByTagName("canvas")[0], true);
 interposer = InterposeContextCalls(document.getElementById("canvas"), true);
 interposer = InterposeContextCalls(document.getElementById("canvas"));
